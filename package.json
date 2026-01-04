@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
+    "test": "",
     "preview": "vite preview",
     "prepare": "husky"
   },
