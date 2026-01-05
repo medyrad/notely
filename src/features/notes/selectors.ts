@@ -1,8 +1,6 @@
 import { useNotesStore } from "./store";
-import type { Note } from "./types";
 
-export const useNotesList = (): readonly Note[] =>
-  useNotesStore((s) => Object.values(s.history.present));
+export const useNotesList = () => useNotesStore((s) => Object.values(s.history.present));
 
 export const useNoteById = (id: string) => useNotesStore((s) => s.history.present[id as any]);
 

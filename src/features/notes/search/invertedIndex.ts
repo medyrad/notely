@@ -1,6 +1,6 @@
-import { Note, NoteId } from "../types";
+import type { Note, NoteId } from "../types";
 export class InvertedIndex {
-  private index = new Map<string, set<NoteId>>();
+  private index = new Map<string, Set<NoteId>>();
 
   add(note: Note) {
     const tokens = this.tokenize(note.title + " " + note.content);

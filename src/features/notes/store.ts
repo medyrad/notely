@@ -96,13 +96,19 @@ export const useNotesStore = create<NotesState>()(
 
     undo: () => {
       set((state) => {
-        state.history = undo(state.history);
+        const newHistory = undo<NotesMap>(state.history);
+        state.history.past = [...newHistory.past];
+        state.history.present = newHistory.present;
+        state.history.future = [...newHistory.future];
       });
     },
 
     redo: () => {
       set((state) => {
-        state.history = redo(state.history);
+        const newHistory = redo<NotesMap>(state.history);
+        state.history.past = [...newHistory.past];
+        state.history.present = newHistory.present;
+        state.history.future = [...newHistory.future];
       });
     },
   })),
