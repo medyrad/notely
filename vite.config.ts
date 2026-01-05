@@ -1,16 +1,17 @@
+/// <reference types="vitest" />
 /// <reference types="vitest/config" />
-import { defineConfig } from "vite";
+import { defineConfig, mergeConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
 import { playwright } from "@vitest/browser-playwright";
+
 const dirname =
   typeof __dirname !== "undefined" ? __dirname : path.dirname(fileURLToPath(import.meta.url));
 
-// More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
-export default defineConfig({
+const baseConfig = defineConfig({
   plugins: [
     react(),
     VitePWA({
@@ -47,13 +48,28 @@ export default defineConfig({
       },
     }),
   ],
+});
+
+const unitTestConfig = defineConfig({
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: "./src/test/setup.ts",
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html"],
+      all: true,
+      include: ["src/features/**/*.{ts,tsx}"],
+    },
+  },
+});
+
+const storybookTestConfig = defineConfig({
   test: {
     projects: [
       {
         extends: true,
         plugins: [
-          // The plugin will run tests for the stories defined in your Storybook config
-          // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
           storybookTest({
             configDir: path.join(dirname, ".storybook"),
           }),
@@ -75,4 +91,12 @@ export default defineConfig({
       },
     ],
   },
+});
+
+export default defineConfig(({ mode, command }) => {
+  if (command === "serve" || command === "build") {
+    return baseConfig;
+  }
+
+  return mergeConfig(baseConfig, mergeConfig(unitTestConfig, storybookTestConfig));
 });
