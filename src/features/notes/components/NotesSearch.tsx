@@ -1,5 +1,7 @@
-import { useState, useTransition, useDeferredValue } from "react";
-import { searchNotes } from "../search/useSearchEngine";
+import { useState, useTransition, useDeferredValue, type ChangeEvent } from "react";
+
+import { useSearchWorker } from "../search/useSearchWorker";
+import { useNotesStore } from "../store";
 import { NotesList } from "./ NoteList";
 
 export function NotesSearch() {
@@ -7,22 +9,44 @@ export function NotesSearch() {
   const [results, setResults] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
 
+  const allNotes = useNotesStore((state) => state.noteIds.map((id) => state.notesById[id]));
+
+  const { search } = useSearchWorker(allNotes);
+
   const deferredResults = useDeferredValue(results);
 
-  const onChange = (value: string) => {
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
     setQuery(value);
 
-    startTransition(() => {
-      const ids = Array.from(searchNotes(query));
+    startTransition(async () => {
+      if (!value.trim()) {
+        setResults([]);
+        return;
+      }
+
+      const ids = await search(value);
       setResults(ids);
     });
   };
 
   return (
-    <>
-      <input value={query} onChange={(e) => onChange(e.target.value)} />
-      {isPending && <span>Searching…</span>}
+    <section aria-label="Notes search">
+      <input
+        type="search"
+        value={query}
+        onChange={onChange}
+        placeholder="Search notes…"
+        aria-label="Search notes"
+      />
+
+      {isPending && (
+        <span role="status" aria-live="polite">
+          Searching…
+        </span>
+      )}
+
       <NotesList noteIds={deferredResults} />
-    </>
+    </section>
   );
 }
